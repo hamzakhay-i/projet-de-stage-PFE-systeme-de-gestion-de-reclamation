@@ -1,0 +1,22 @@
+stack: error: la colonne « nom » de la relation « users » n'existe pas
+    at C:\Users\hamza\OneDrive\Bureau\gestion_rec\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+message: la colonne « nom » de la relation « users » n'existe pas
+length: 135
+name: error
+severity: ERREUR
+code: 42703
+detail: undefined
+hint: undefined
+position: 20
+internalPosition: undefined
+internalQuery: undefined
+where: undefined
+schema: undefined
+table: undefined
+column: undefined
+dataType: undefined
+constraint: undefined
+file: parse_target.c
+line: 1073
+routine: checkInsertTargets
