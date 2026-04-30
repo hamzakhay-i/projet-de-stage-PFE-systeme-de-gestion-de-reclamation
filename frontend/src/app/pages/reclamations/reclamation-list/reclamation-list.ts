@@ -113,7 +113,7 @@ import { Sidebar } from '../../layout/sidebar/sidebar';
                             </svg>
                             Chat
                           </a>
-                          @if (authService.userRole() === 'admin' || authService.userRole() === 'agent') {
+                          @if (canEdit(rec)) {
                             <button class="btn btn-ghost btn-sm" (click)="openEditModal(rec)" id="edit-btn-{{rec.id}}">
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
@@ -300,6 +300,16 @@ export class ReclamationList implements OnInit {
 
   formatDate(d: string): string {
     return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  canEdit(rec: Reclamation): boolean {
+    const userRole = this.authService.userRole();
+    const currentUserId = this.authService.currentUser()?.id;
+    if (userRole === 'admin') return true;
+    if (userRole === 'agent') {
+      return !rec.agent_id || rec.agent_id === currentUserId;
+    }
+    return false;
   }
 
   openEditModal(rec: Reclamation): void {

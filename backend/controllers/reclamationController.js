@@ -102,6 +102,16 @@ const ReclamationController = {
     try {
       const { titre, description, statut, priorite, agent_id } = req.body;
 
+      const existing = await ReclamationModel.findById(req.params.id);
+      if (!existing) {
+        return res.status(404).json({ error: 'Réclamation non trouvée.' });
+      }
+
+      // Si l'utilisateur est un agent, il ne peut modifier que ses propres tickets ou les tickets non assignés
+      if (req.user.role === 'agent' && existing.agent_id && existing.agent_id !== req.user.id) {
+        return res.status(403).json({ error: 'Accès refusé : Cette réclamation est déjà en cours de traitement par un autre agent.' });
+      }
+
       const reclamation = await ReclamationModel.update(req.params.id, {
         titre,
         description,
@@ -109,10 +119,6 @@ const ReclamationController = {
         priorite,
         agent_id
       });
-
-      if (!reclamation) {
-        return res.status(404).json({ error: 'Réclamation non trouvée.' });
-      }
 
       res.json({ message: 'Réclamation mise à jour', reclamation });
     } catch (error) {

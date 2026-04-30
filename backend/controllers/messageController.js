@@ -26,7 +26,11 @@ const MessageController = {
       if (role === 'client' && reclamation.client_id !== userId) {
         return res.status(403).json({ error: 'Accès interdit.' });
       }
-      // Les agents et admins ont accès à tout
+      
+      // Les agents ne peuvent répondre qu'aux tickets non assignés ou qui leur sont assignés
+      if (role === 'agent' && reclamation.agent_id && reclamation.agent_id !== userId) {
+        return res.status(403).json({ error: 'Accès refusé : Cette réclamation est traitée par un autre agent.' });
+      }
 
       const message = await MessageModel.create({
         reclamation_id,

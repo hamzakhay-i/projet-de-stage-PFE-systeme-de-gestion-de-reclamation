@@ -16,93 +16,139 @@ import { Sidebar } from '../layout/sidebar/sidebar';
     <div class="chat-layout">
       <app-sidebar />
       <main class="main-content">
-        <!-- Chat Header -->
-        <div class="chat-header glass-card animate-fade-in">
-          <a routerLink="/reclamations" class="btn btn-ghost btn-sm">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="15,18 9,12 15,6"/>
-            </svg>
-            Retour
-          </a>
+        <!-- Professional Header -->
+        <div class="chat-header animate-fade-in">
+          <div class="header-actions">
+            <a routerLink="/reclamations" class="btn btn-ghost btn-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15,18 9,12 15,6"/>
+              </svg>
+            </a>
+          </div>
           @if (reclamation()) {
-            <div class="chat-info">
-              <h2>{{ reclamation()?.titre }}</h2>
-              <div class="chat-meta">
+            <div class="header-content">
+              <div class="title-row">
+                <h2>{{ reclamation()?.titre }}</h2>
+                <span class="ticket-id">#{{ reclamation()?.id }}</span>
+              </div>
+              <div class="badges-row">
                 <span class="badge" [class]="'badge-' + reclamation()?.statut">{{ formatStatut(reclamation()?.statut || '') }}</span>
                 <span class="badge" [class]="'badge-' + reclamation()?.priorite">Priorité {{ reclamation()?.priorite }}</span>
-                <span class="text-muted">•</span>
-                <span class="text-muted">Réclamation #{{ reclamation()?.id }}</span>
               </div>
-            </div>
-            
-            <div class="reclamation-content">
-              <p>{{ reclamation()?.description }}</p>
             </div>
           }
         </div>
 
-        <!-- Messages -->
+        <!-- Messages Area -->
         <div class="chat-messages" #chatContainer>
           @if (isLoading()) {
             <div class="loading-overlay">
               <div class="spinner spinner-lg"></div>
-              <span>Chargement des messages...</span>
-            </div>
-          } @else if (messages().length === 0) {
-            <div class="empty-chat">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-              </svg>
-              <p>Aucun message. Commencez la conversation !</p>
+              <span>Chargement du ticket...</span>
             </div>
           } @else {
+            
+            <!-- Description as first message -->
+            @if (reclamation()) {
+              <div class="message-wrapper" [class.sent]="reclamation()!.client_id === currentUserId()" [class.received]="reclamation()!.client_id !== currentUserId()">
+                <div class="message-avatar">
+                  {{ getInitials(reclamation()?.client_prenom, reclamation()?.client_nom) }}
+                </div>
+                <div class="message-content">
+                  <div class="message-meta">
+                    <span class="sender-name">{{ reclamation()?.client_prenom }} {{ reclamation()?.client_nom }}</span>
+                    <span class="sender-role client-role">Client</span>
+                    <span class="message-time">{{ formatTime(reclamation()?.created_at || '') }}</span>
+                  </div>
+                  <div class="message-bubble description-bubble">
+                    <div class="description-header">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                      </svg>
+                      RÉCLAMATION INITIALE
+                    </div>
+                    <p class="message-text">{{ reclamation()?.description }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="messages-divider">
+                <span>Discussion</span>
+              </div>
+            }
+
             @for (msg of messages(); track msg.id) {
               <div class="message-wrapper" [class.sent]="msg.sender_id === currentUserId()" [class.received]="msg.sender_id !== currentUserId()">
-                <div class="message-bubble">
-                  <div class="message-sender">
+                <div class="message-avatar" [class.agent-avatar]="msg.sender_role !== 'client'">
+                  {{ getInitials(msg.sender_prenom, msg.sender_nom) }}
+                </div>
+                <div class="message-content">
+                  <div class="message-meta">
                     <span class="sender-name">{{ msg.sender_prenom }} {{ msg.sender_nom }}</span>
-                    <span class="badge" [class]="'badge-' + msg.sender_role">{{ msg.sender_role }}</span>
-                  </div>
-                  <p class="message-text">{{ msg.contenu }}</p>
-                  <div class="message-time">
-                    {{ formatTime(msg.created_at) }}
-                    @if (msg.sender_id === currentUserId()) {
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.read]="msg.lu">
-                        <polyline points="20,6 9,17 4,12"/>
-                      </svg>
+                    @if (msg.sender_role !== 'client') {
+                      <span class="sender-role agent-role">{{ msg.sender_role === 'admin' ? 'Admin' : 'Agent' }}</span>
                     }
+                    <span class="message-time">
+                      {{ formatTime(msg.created_at) }}
+                      @if (msg.sender_id === currentUserId()) {
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.read]="msg.lu">
+                          <polyline points="20,6 9,17 4,12"/>
+                        </svg>
+                      }
+                    </span>
+                  </div>
+                  <div class="message-bubble">
+                    <p class="message-text">{{ msg.contenu }}</p>
                   </div>
                 </div>
               </div>
             }
+            
+            @if (messages().length === 0) {
+               <div class="empty-chat-sub">Le ticket a été ouvert. En attente d'une réponse.</div>
+            }
           }
         </div>
 
-        <!-- Input -->
-        <div class="chat-input glass-card">
-          <form (ngSubmit)="sendMessage()" class="input-form">
-            <input
-              type="text"
-              class="form-input message-input"
-              [(ngModel)]="newMessage"
-              name="message"
-              placeholder="Tapez votre message..."
-              autocomplete="off"
-              id="chat-input"
-            />
-            <button type="submit" class="btn btn-primary send-btn" [disabled]="!newMessage.trim()" id="send-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="22" y1="2" x2="11" y2="13"/>
-                <polygon points="22,2 15,22 11,13 2,9"/>
-              </svg>
-            </button>
-          </form>
-        </div>
+        <!-- Professional Input Area -->
+        @if (canReply()) {
+          <div class="chat-input-container">
+            <form (ngSubmit)="sendMessage()" class="input-form">
+              <input
+                type="text"
+                class="form-input chat-input-field"
+                [(ngModel)]="newMessage"
+                name="message"
+                placeholder="Écrivez votre réponse ici..."
+                autocomplete="off"
+                id="chat-input"
+              />
+              <button type="submit" class="btn btn-primary send-btn" [disabled]="!newMessage.trim()" id="send-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22,2 15,22 11,13 2,9"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        } @else if (authService.userRole() === 'agent') {
+          <div class="chat-input-locked">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span>Ce ticket est actuellement géré par un autre agent. Vous ne pouvez pas y répondre.</span>
+          </div>
+        }
       </main>
     </div>
   `,
   styles: [`
-    .chat-layout { display: flex; min-height: 100vh; }
+    .chat-layout { display: flex; min-height: 100vh; background: var(--bg-body); }
     .main-content {
       flex: 1;
       margin-left: var(--sidebar-width);
@@ -110,181 +156,231 @@ import { Sidebar } from '../layout/sidebar/sidebar';
       flex-direction: column;
       height: 100vh;
       position: relative;
-      z-index: 1;
     }
 
+    /* Professional Header */
     .chat-header {
       display: flex;
-      flex-wrap: wrap;
-      align-items: flex-start;
-      gap: 16px;
-      padding: 16px 24px;
-      border-radius: 0;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 32px;
+      background: #ffffff;
       border-bottom: 1px solid var(--glass-border);
-      border-top: none;
-      border-left: none;
-      border-right: none;
+      z-index: 10;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
 
-    .chat-info h2 {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .chat-meta {
+    .btn-icon {
+      padding: 8px;
+      border-radius: 8px;
+      background: var(--bg-body);
+      color: var(--text-muted);
+      border: 1px solid var(--glass-border);
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 4px;
-      margin-bottom: 12px;
-      font-size: 0.75rem;
+      justify-content: center;
     }
+    .btn-icon:hover { background: #fff; color: var(--text); border-color: var(--text-muted); }
 
-    .reclamation-content {
-      margin-top: 6px;
-      margin-left: 0;
-      padding-top: 12px;
-      border-top: 1px dashed rgba(255, 255, 255, 0.1);
-      width: 100%;
-      grid-column: 1 / -1;
-    }
+    .header-content { display: flex; flex-direction: column; gap: 4px; }
+    .title-row { display: flex; align-items: baseline; gap: 12px; }
+    .title-row h2 { font-size: 1.125rem; font-weight: 600; color: var(--text); margin: 0; }
+    .ticket-id { font-size: 0.875rem; color: var(--text-muted); font-weight: 500; }
+    .badges-row { display: flex; gap: 8px; }
 
-    .reclamation-content p {
-      font-size: 0.875rem;
-      line-height: 1.5;
-      color: var(--text-muted);
-      white-space: pre-wrap;
-      margin: 0;
-    }
-
+    /* Chat Messages Area */
     .chat-messages {
       flex: 1;
       overflow-y: auto;
-      padding: 24px;
+      padding: 32px 10%;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 24px;
+      background: #f8fafc;
     }
 
-    .empty-chat {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      color: var(--text-muted);
-    }
-
-    /* WhatsApp-style messages */
+    /* Message Wrappers */
     .message-wrapper {
       display: flex;
+      gap: 16px;
       animation: fadeIn 0.3s ease forwards;
+      width: 100%;
     }
 
-    .message-wrapper.sent {
-      justify-content: flex-end;
-    }
+    .message-wrapper.sent { flex-direction: row-reverse; }
 
-    .message-wrapper.received {
-      justify-content: flex-start;
-    }
-
-    .message-bubble {
-      max-width: 65%;
-      padding: 12px 16px;
-      border-radius: var(--radius-lg);
-      position: relative;
-    }
-
-    .sent .message-bubble {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(14, 165, 233, 0.1));
-      border: 1px solid rgba(14, 165, 233, 0.2);
-      border-bottom-right-radius: 4px;
-    }
-
-    .received .message-bubble {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      border-bottom-left-radius: 4px;
-    }
-
-    .message-sender {
+    /* Avatars */
+    .message-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #475569;
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 4px;
-    }
-
-    .sender-name {
-      font-size: 0.75rem;
+      justify-content: center;
       font-weight: 600;
-      color: var(--primary-light);
+      font-size: 0.875rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .message-wrapper.sent .message-avatar {
+      background: var(--primary-light);
+      color: white;
+    }
+    .agent-avatar {
+      background: rgba(14, 165, 233, 0.1) !important;
+      color: var(--primary-dark) !important;
+      border: 1px solid rgba(14, 165, 233, 0.2);
     }
 
-    .received .sender-name {
-      color: var(--accent-light);
+    /* Content & Meta */
+    .message-content {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 75%;
+    }
+    .message-wrapper.sent .message-content { align-items: flex-end; }
+
+    .message-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 0 4px;
+    }
+    .message-wrapper.sent .message-meta { flex-direction: row-reverse; }
+
+    .sender-name { font-size: 0.8125rem; font-weight: 600; color: var(--text); }
+    
+    .sender-role {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+    .client-role { background: rgba(0,0,0,0.05); color: var(--text-muted); }
+    .agent-role { background: rgba(14, 165, 233, 0.1); color: var(--primary-dark); }
+
+    .message-time { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+
+    /* Bubbles */
+    .message-bubble {
+      padding: 14px 18px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .received .message-bubble {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-top-left-radius: 4px;
+    }
+    .sent .message-bubble {
+      background: var(--primary);
+      border-top-right-radius: 4px;
+      box-shadow: 0 2px 6px rgba(14,165,233,0.2);
     }
 
+    /* Description specific */
+    .description-bubble {
+      background: #ffffff !important;
+      border: 1px solid #e2e8f0 !important;
+      border-top-left-radius: 4px !important;
+      border-top-right-radius: 12px !important;
+      border-left: 3px solid var(--primary) !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important;
+      padding-top: 12px !important;
+    }
+    .description-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .sent .description-bubble {
+      border-top-right-radius: 4px !important;
+      border-top-left-radius: 12px !important;
+      border-right: 3px solid var(--primary) !important;
+      border-left: 1px solid #e2e8f0 !important;
+    }
+
+    /* Text */
     .message-text {
       font-size: 0.9375rem;
+      line-height: 1.6;
       color: var(--text);
-      line-height: 1.5;
-      word-wrap: break-word;
+      white-space: pre-wrap;
+      margin: 0;
     }
+    .sent .message-text { color: #ffffff; }
+    .description-bubble .message-text { color: var(--text) !important; }
 
-    .message-time {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      justify-content: flex-end;
-      font-size: 0.6875rem;
-      color: var(--text-muted);
-      margin-top: 4px;
+    /* Divider */
+    .messages-divider {
+      display: flex; align-items: center; text-align: center;
+      color: var(--text-muted); font-size: 0.75rem;
+      margin: 24px 0 8px 0; text-transform: uppercase; letter-spacing: 1px; font-weight: 500;
     }
-
-    .message-time svg {
-      color: var(--text-muted);
+    .messages-divider::before, .messages-divider::after {
+      content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; margin: 0 16px;
     }
+    .empty-chat-sub { text-align: center; color: var(--text-muted); font-size: 0.875rem; margin-top: 16px; font-style: italic; }
 
-    .message-time svg.read {
-      color: var(--primary);
-    }
-
-    /* Input Area */
-    .chat-input {
-      padding: 16px 24px;
-      border-radius: 0;
+    /* Professional Input Area */
+    .chat-input-container {
+      padding: 20px 10%;
+      background: #ffffff;
       border-top: 1px solid var(--glass-border);
-      border-bottom: none;
-      border-left: none;
-      border-right: none;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.02);
     }
 
-    .input-form {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .message-input {
+    .input-form { display: flex; gap: 12px; align-items: center; }
+    .chat-input-field {
       flex: 1;
-      border-radius: var(--radius-full) !important;
-      padding: 12px 20px !important;
+      border-radius: 20px !important;
+      padding: 14px 24px !important;
+      background: #f8fafc !important;
+      border: 1px solid #e2e8f0 !important;
+      font-size: 0.9375rem;
+      transition: all 0.2s;
     }
+    .chat-input-field:focus { background: #ffffff !important; border-color: var(--primary) !important; box-shadow: 0 0 0 3px rgba(14,165,233,0.1) !important;}
 
     .send-btn {
-      width: 48px;
-      height: 48px;
-      min-width: 48px;
-      border-radius: var(--radius-full);
-      padding: 0;
+      width: 50px; height: 50px; min-width: 50px;
+      border-radius: 50%; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+    }
+
+    .chat-input-locked {
+      padding: 24px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-weight: 500;
     }
 
     @media (max-width: 768px) {
       .main-content { margin-left: 0; }
-      .message-bubble { max-width: 80%; }
+      .chat-messages { padding: 24px 16px; }
+      .chat-input-container { padding: 16px; }
+      .message-content { max-width: 85%; }
     }
   `]
 })
@@ -371,5 +467,22 @@ export class Chat implements OnInit, OnDestroy {
 
   formatTime(d: string): string {
     return new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  getInitials(prenom?: string, nom?: string): string {
+    if (!prenom || !nom) return 'U';
+    return (prenom.charAt(0) + nom.charAt(0)).toUpperCase();
+  }
+
+  canReply(): boolean {
+    const userRole = this.authService.userRole();
+    const currentUserId = this.currentUserId();
+    const rec = this.reclamation();
+    if (!rec) return false;
+    
+    if (userRole === 'client' && rec.client_id !== currentUserId) return false;
+    if (userRole === 'agent' && rec.agent_id && rec.agent_id !== currentUserId) return false;
+    
+    return true; // admin, owner client, or owner/unassigned agent
   }
 }
