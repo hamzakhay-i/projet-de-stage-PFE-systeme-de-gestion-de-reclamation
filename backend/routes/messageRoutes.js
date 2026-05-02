@@ -9,7 +9,6 @@ const auth = require('../middleware/auth');
 // Toutes les routes nécessitent l'authentification
 router.use(auth);
 
-// Routes
 router.post('/', MessageController.send);
 router.get('/unread/count', MessageController.getUnreadCount);
 router.get('/:reclamationId', MessageController.getByReclamation);

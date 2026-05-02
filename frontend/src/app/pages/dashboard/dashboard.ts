@@ -224,7 +224,7 @@ export class Dashboard implements OnInit {
 
   ngOnInit(): void {
     this.reclamationService.getStats().subscribe({
-      next: (data) => {
+      next: (data: ReclamationStats) => {
         this.stats.set(data);
         this.isLoading.set(false);
       },

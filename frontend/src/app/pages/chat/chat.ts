@@ -319,6 +319,9 @@ import { Sidebar } from '../layout/sidebar/sidebar';
       line-height: 1.6;
       color: var(--text);
       white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
       margin: 0;
     }
     .sent .message-text { color: #ffffff; }
@@ -419,14 +422,14 @@ export class Chat implements OnInit, OnDestroy {
 
   loadReclamation(): void {
     this.reclamationService.getById(this.reclamationId).subscribe({
-      next: (data) => this.reclamation.set(data),
+      next: (data: Reclamation) => this.reclamation.set(data),
       error: () => {}
     });
   }
 
   loadMessages(): void {
     this.messageService.getByReclamation(this.reclamationId).subscribe({
-      next: (data) => {
+      next: (data: Message[]) => {
         const prevLength = this.messages().length;
         this.messages.set(data);
         this.isLoading.set(false);

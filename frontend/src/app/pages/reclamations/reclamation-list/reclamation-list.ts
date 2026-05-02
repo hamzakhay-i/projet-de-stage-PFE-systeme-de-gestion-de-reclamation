@@ -121,6 +121,13 @@ import { Sidebar } from '../../layout/sidebar/sidebar';
                               </svg>
                             </button>
                           }
+                          @if (authService.userRole() === 'admin') {
+                            <button class="btn btn-ghost btn-sm text-danger" (click)="deleteReclamation(rec.id)" title="Supprimer">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                              </svg>
+                            </button>
+                          }
                         </div>
                       </td>
                     </tr>
@@ -197,6 +204,8 @@ import { Sidebar } from '../../layout/sidebar/sidebar';
     .title-cell { font-weight: 500; color: var(--text); }
 
     .action-buttons { display: flex; gap: 8px; }
+    .text-danger { color: #ef4444; }
+    .text-danger:hover { background: rgba(239, 68, 68, 0.1) !important; color: #dc2626 !important; }
 
     .empty-state {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -263,7 +272,7 @@ export class ReclamationList implements OnInit {
   loadReclamations(): void {
     this.isLoading.set(true);
     this.reclamationService.getAll().subscribe({
-      next: (data) => {
+      next: (data: Reclamation[]) => {
         this.reclamations.set(data);
         this.applyFilters();
         this.isLoading.set(false);
@@ -282,10 +291,14 @@ export class ReclamationList implements OnInit {
     }
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
+      const termClean = term.replace('#', '').trim();
+      
       result = result.filter(r =>
+        r.id.toString().includes(termClean) ||
         r.titre.toLowerCase().includes(term) ||
         r.description.toLowerCase().includes(term) ||
-        (r.client_nom && r.client_nom.toLowerCase().includes(term))
+        (r.client_nom && r.client_nom.toLowerCase().includes(term)) ||
+        (r.client_prenom && r.client_prenom.toLowerCase().includes(term))
       );
     }
     this.filtered.set(result);
@@ -338,5 +351,16 @@ export class ReclamationList implements OnInit {
       },
       error: () => {}
     });
+  }
+
+  deleteReclamation(id: number): void {
+    if (confirm('Êtes-vous sûr de vouloir supprimer définitivement cette réclamation ?')) {
+      this.reclamationService.delete(id).subscribe({
+        next: () => {
+          this.loadReclamations();
+        },
+        error: (err: any) => console.error('Erreur lors de la suppression', err)
+      });
+    }
   }
 }

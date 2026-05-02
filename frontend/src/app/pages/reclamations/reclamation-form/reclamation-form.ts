@@ -144,7 +144,7 @@ export class ReclamationForm {
         this.isSubmitting.set(false);
         setTimeout(() => this.router.navigate(['/reclamations']), 1500);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.errorMessage.set(err.error?.error || 'Erreur lors de la soumission.');
         this.isSubmitting.set(false);
       }
