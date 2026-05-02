@@ -89,10 +89,3 @@ gestion_rec/
 
 ---
 
-## 📦 Livrables de Stage
-Ce projet est livré avec :
-1. Le code source complet (Backend & Frontend).
-2. Le schéma de base de données PostgreSQL (`database/init.sql`).
-3. Une documentation technique intégrée.
-
-**Développé par Hamza - Projet de Fin d'Études (PFE)**
