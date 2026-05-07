@@ -29,8 +29,6 @@ psql -U postgres -d sgr_db -f database/init.sql
 - **Email** : `admin@sgr.com`
 - **Mot de passe** : `Admin123!`
 
----
-*Projet de Fin d'Études (PFE) — Développé par Hamza.*
 
 ## 📂 Structure du Projet
 
