@@ -1,4 +1,4 @@
-# 🏢 Système de Gestion des Réclamations (SGR) — SGR AL AMANA
+ Gestion des Réclamations
 
 Une plateforme web full-stack pour la gestion centralisée des réclamations clients.
 
